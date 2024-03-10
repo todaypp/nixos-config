@@ -43,8 +43,23 @@ in {
     pkgs.gopls
     pkgs.zigpkgs.master
 
+    # CUSTOM:
+    # pkgs.chezmoi
+    # pkgs.watchman
+    pkgs.ansible
+    pkgs.awscli2
+    pkgs.buf
+    pkgs.google-cloud-sdk
+    pkgs.kubectl
+    pkgs.python
+    pkgs.redis
+    pkgs.terraform
+    pkgs.terraform-ls
+    pkgs.unzip
+
     # Node is required for Copilot.vim
     pkgs.nodejs
+    pkgs.pnpm
   ] ++ (lib.optionals isDarwin [
     # This is automatically setup on Linux
     pkgs.cachix
@@ -126,6 +141,7 @@ in {
         prefix= [
           "$HOME/code/go/src/github.com/hashicorp"
           "$HOME/code/go/src/github.com/mitchellh"
+          "$HOME/code/go/src/github.com/todaypp"
         ];
 
         exact = ["$HOME/.envrc"];
@@ -133,51 +149,114 @@ in {
     };
   };
 
-  programs.fish = {
+  programs.fzf = {
     enable = true;
-    interactiveShellInit = lib.strings.concatStrings (lib.strings.intersperse "\n" ([
-      "source ${sources.theme-bobthefish}/functions/fish_prompt.fish"
-      "source ${sources.theme-bobthefish}/functions/fish_right_prompt.fish"
-      "source ${sources.theme-bobthefish}/functions/fish_title.fish"
-      (builtins.readFile ./config.fish)
-      "set -g SHELL ${pkgs.fish}/bin/fish"
-    ]));
+    enableZshIntegration = true;
+  };
+
+  programs.zsh = {
+    enable = true;
+    # interactiveShellInit = lib.strings.concatStrings (lib.strings.intersperse "\n" ([
+    #   "source ${sources.theme-bobthefish}/functions/fish_prompt.fish"
+    #   "source ${sources.theme-bobthefish}/functions/fish_right_prompt.fish"
+    #   "source ${sources.theme-bobthefish}/functions/fish_title.fish"
+    #   (builtins.readFile ./config.fish)
+    #   "set -g SHELL ${pkgs.fish}/bin/fish"
+    # ]));
+
+    autocd = true;
+    enableAutosuggestions = true;
+    enableCompletion = true;
 
     shellAliases = {
       ga = "git add";
       gc = "git commit";
       gco = "git checkout";
       gcp = "git cherry-pick";
-      gdiff = "git diff";
+      gd = "git diff";
       gl = "git prettylog";
+      gla = "git prettylog --all";
       gp = "git push";
-      gs = "git status";
+      gpl = "git pull";
+      gst = "git status";
       gt = "git tag";
+      v = "nvim";
+      vim = "nvim";
     } // (if isLinux then {
       # Two decades of using a Mac has made this such a strong memory
       # that I'm just going to keep it consistent.
       pbcopy = "xclip";
       pbpaste = "xclip -o";
-    } else {});
 
-    plugins = map (n: {
-      name = n;
-      src  = sources.${n};
-    }) [
-      "fish-fzf"
-      "fish-foreign-env"
-      "theme-bobthefish"
+    initExtraBeforeCompInit = ''
+fpath+=(/nix/var/nix/profiles/per-user/vance/home-manager/home-path/share/zsh/site-functions)
+    '';
+
+    initExtra = ''
+export FZF_DEFAULT_COMMAND='rg --files'
+
+# go path
+export PATH=$PATH:$(go env GOPATH)
+export PATH=$PATH:$(go env GOPATH)/bin
+
+fb() {
+  git branch --sort=committerdate -v --color=always | grep -v '/HEAD\s' |
+      fzf --height 40% --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' |
+      sed 's#^remotes/[^/]*/##' | xargs git checkout
+}
+
+fba() {
+  git branch -a --sort=committerdate -v --color=always | grep -v '/HEAD\s' |
+      fzf --height 40% --ansi --multi --tac | sed 's/^..//' | awk '{print $1}' |
+      sed 's#^remotes/[^/]*/##' | xargs git checkout
+}
+    '';
+
+    oh-my-zsh = {
+      enable = true;
+
+      plugins = [
+        "command-not-found"
+        "git"
+        "history"
+      ];
+    };
+
+    zplug = {
+      enable = true;
+      plugins = [
+        { name = "zsh-users/zsh-autosuggestions"; } # Simple plugin installation
+        { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; } # Installations with additional options. For the list of options, please refer to Zplug README.
+      ];
+    };
+
+    plugins = [
+     {
+        name = "powerlevel10k-config";
+        src = lib.cleanSource ./p10k-config;
+        file = "p10k.zsh";
+      }
+      {
+        name = "zsh-nix-shell";
+        file = "nix-shell.plugin.zsh";
+        src = pkgs.fetchFromGitHub {
+          owner = "chisui";
+          repo = "zsh-nix-shell";
+          rev = "v0.4.0";
+          sha256 = "037wz9fqmx0ngcwl9az55fgkipb745rymznxnssr3rx9irb6apzg";
+        };
+      }
     ];
   };
 
   programs.git = {
     enable = true;
-    userName = "Mitchell Hashimoto";
-    userEmail = "mitchell.hashimoto@gmail.com";
-    signing = {
-      key = "523D5DC389D273BC";
-      signByDefault = true;
-    };
+    userName = "Sumin Son";
+    userEmail = "clvswft03@gmail.com";
+    # signing = {
+    #   key = "523D5DC389D273BC";
+    #   signByDefault = true;
+    # };
     aliases = {
       cleanup = "!git branch --merged | grep  -v '\\*\\|master\\|develop' | xargs -n 1 -r git branch -d";
       prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(r) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
@@ -188,7 +267,7 @@ in {
       color.ui = true;
       core.askPass = ""; # needs to be empty to use terminal for ask pass
       credential.helper = "store"; # want to make this more secure
-      github.user = "mitchellh";
+      github.user = "todaypp";
       push.default = "tracking";
       init.defaultBranch = "main";
     };
@@ -197,7 +276,12 @@ in {
   programs.go = {
     enable = true;
     goPath = "code/go";
-    goPrivate = [ "github.com/mitchellh" "github.com/hashicorp" "rfc822.mx" ];
+    goPrivate = [
+      "github.com/todaypp"
+      "github.com/mitchellh"
+      "github.com/hashicorp"
+      "rfc822.mx"
+    ];
   };
 
   programs.tmux = {
@@ -205,18 +289,41 @@ in {
     terminal = "xterm-256color";
     shortcut = "l";
     secureSocket = false;
+    prefix = "C-q";
 
     extraConfig = ''
+      set-option -g default-terminal "screen-256color"
       set -ga terminal-overrides ",*256col*:Tc"
+      set-option -sg escape-time 10
 
-      set -g @dracula-show-battery false
-      set -g @dracula-show-network false
-      set -g @dracula-show-weather false
+      set -g mouse on
+      setw -g mode-keys vi
+      # If you don’t mind artifically introducing a few Vim-only features to the vi mode, you can set things up so that v starts a selection and y finishes it in the same way that Space and Enter do, more like Vim:
+      bind-key -T copy-mode-vi 'v' send -X begin-selection
+      bind-key -T copy-mode-vi 'y' send -X copy-selection-and-cancel
+      bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
 
-      bind -n C-k send-keys "clear"\; send-keys "Enter"
+      # prevent "release mouse click to copy and exit copy mode and reset scroll position"
+      # keeps scroll position after highlight/mouse release
+      unbind -T copy-mode-vi MouseDragEnd1Pane
 
-      run-shell ${sources.tmux-pain-control}/pain_control.tmux
-      run-shell ${sources.tmux-dracula}/dracula.tmux
+      # Vim style pane navigation (instead of arrow keys)
+      bind h select-pane -L
+      bind j select-pane -D
+      bind k select-pane -U
+      bind l select-pane -R
+
+      # <C-b>b to go to last window since <C-b>l is overwritten by the above pane navigation bindings
+      bind n last-window
+
+      # set -g @dracula-show-battery false
+      # set -g @dracula-show-network false
+      # set -g @dracula-show-weather false
+      #
+      # bind -n C-k send-keys "clear"\; send-keys "Enter"
+      #
+      # run-shell ${sources.tmux-pain-control}/pain_control.tmux
+      # run-shell ${sources.tmux-dracula}/dracula.tmux
     '';
   };
 
@@ -261,7 +368,8 @@ in {
 
   programs.neovim = {
     enable = true;
-    package = pkgs.neovim-nightly;
+    # package = pkgs.neovim-nightly;
+    package = pkgs.neovim;
 
     withPython3 = true;
 

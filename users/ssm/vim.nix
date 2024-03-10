@@ -10,10 +10,10 @@ let sources = import ../../nix/sources.nix; in rec {
       src = inputs.vim-copilot;
     };
 
-    vim-cue = vimUtils.buildVimPlugin {
-      name = "vim-cue";
-      src = sources.vim-cue;
-    };
+    # vim-cue = vimUtils.buildVimPlugin {
+    #   name = "vim-cue";
+    #   src = sources.vim-cue;
+    # };
 
     vim-fish = vimUtils.buildVimPlugin {
       name = "vim-fish";

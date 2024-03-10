@@ -44,7 +44,7 @@ in {
   networking.hostName = "dev";
 
   # Set your time zone.
-  time.timeZone = "America/Los_Angeles";
+  time.timeZone = "Asia/Seoul";
 
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
@@ -63,6 +63,13 @@ in {
     inputMethod = {
       enabled = "fcitx5";
       fcitx5.addons = with pkgs; [
+        # fcitx5 for Korean
+        # REF: <https://wiki.archlinux.org/title/Localization_(%ED%95%9C%EA%B5%AD%EC%96%B4)/Korean_(%ED%95%9C%EA%B5%AD%EC%96%B4)#fcitx5-hangul>
+        fcitx5-hangul
+        fcitx5-qt4-git
+        fcitx5-qt5-git
+
+        fcitx5
         fcitx5-mozc
         fcitx5-gtk
         fcitx5-chinese-addons
