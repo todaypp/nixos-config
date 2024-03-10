@@ -51,7 +51,7 @@ in {
     pkgs.buf
     pkgs.google-cloud-sdk
     pkgs.kubectl
-    pkgs.python
+    pkgs.python311
     pkgs.redis
     pkgs.terraform
     pkgs.terraform-ls
@@ -59,7 +59,7 @@ in {
 
     # Node is required for Copilot.vim
     pkgs.nodejs
-    pkgs.pnpm
+    # pkgs.pnpm # TODO: pnpm is not available in nixpkgs
   ] ++ (lib.optionals isDarwin [
     # This is automatically setup on Linux
     pkgs.cachix
@@ -111,6 +111,8 @@ in {
   #---------------------------------------------------------------------
   # Programs
   #---------------------------------------------------------------------
+
+  programs.command-not-found.enable = true;
 
   programs.gpg.enable = !isDarwin;
 
@@ -187,6 +189,7 @@ in {
       # that I'm just going to keep it consistent.
       pbcopy = "xclip";
       pbpaste = "xclip -o";
+    } else {});
 
     initExtraBeforeCompInit = ''
 fpath+=(/nix/var/nix/profiles/per-user/vance/home-manager/home-path/share/zsh/site-functions)
@@ -231,7 +234,7 @@ fba() {
     };
 
     plugins = [
-     {
+      {
         name = "powerlevel10k-config";
         src = lib.cleanSource ./p10k-config;
         file = "p10k.zsh";
@@ -368,8 +371,8 @@ fba() {
 
   programs.neovim = {
     enable = true;
-    # package = pkgs.neovim-nightly;
-    package = pkgs.neovim;
+    package = pkgs.neovim-nightly;
+    # package = pkgs.neovim;
 
     withPython3 = true;
 

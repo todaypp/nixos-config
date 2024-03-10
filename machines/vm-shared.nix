@@ -66,8 +66,10 @@ in {
         # fcitx5 for Korean
         # REF: <https://wiki.archlinux.org/title/Localization_(%ED%95%9C%EA%B5%AD%EC%96%B4)/Korean_(%ED%95%9C%EA%B5%AD%EC%96%B4)#fcitx5-hangul>
         fcitx5-hangul
-        fcitx5-qt4-git
-        fcitx5-qt5-git
+        # fcitx5-qt4-git
+        # fcitx5-qt5-git
+        libsForQt5.fcitx5-qt
+        # fcitx5-qt
 
         fcitx5
         fcitx5-mozc

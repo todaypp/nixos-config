@@ -2,13 +2,13 @@
 
 {
   # https://github.com/nix-community/home-manager/pull/2408
-  environment.pathsToLink = [ "/share/fish" ];
+  environment.pathsToLink = [ "/share/zsh" ];
 
   # Add ~/.local/bin to PATH
   environment.localBinInPath = true;
 
-  # Since we're using fish as our shell
-  programs.fish.enable = true;
+  # Since we're using zsh as our shell
+  programs.zsh.enable = true;
 
   users.users.ssm = {
     isNormalUser = true;

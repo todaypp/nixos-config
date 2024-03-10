@@ -79,21 +79,21 @@ vm/bootstrap0:
 # after bootstrap0, run this to finalize. After this, do everything else
 # in the VM unless secrets change.
 vm/bootstrap:
-	# NIXUSER=root $(MAKE) vm/copy
-	# NIXUSER=root $(MAKE) vm/switch
-	# $(MAKE) vm/secrets
+	NIXUSER=root $(MAKE) vm/copy
+	NIXUSER=root $(MAKE) vm/switch
+	$(MAKE) vm/secrets
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		sudo reboot; \
 	"
 
 # copy our secrets into the VM
 vm/secrets:
-	# # GPG keyring
-	# rsync -av -e 'ssh $(SSH_OPTIONS)' \
-	# 	--exclude='.#*' \
-	# 	--exclude='S.*' \
-	# 	--exclude='*.conf' \
-	# 	$(HOME)/.gnupg/ $(NIXUSER)@$(NIXADDR):~/.gnupg
+	# GPG keyring
+	rsync -av -e 'ssh $(SSH_OPTIONS)' \
+		--exclude='.#*' \
+		--exclude='S.*' \
+		--exclude='*.conf' \
+		$(HOME)/.gnupg/ $(NIXUSER)@$(NIXADDR):~/.gnupg
 	# SSH keys
 	rsync -av -e 'ssh $(SSH_OPTIONS)' \
 		--exclude='environment' \
